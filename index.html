@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match2play</title>
+    <style>
+        :root {
+            --bg-color: #f0f8ff;
+            --card-back-color: #a2d2ff;
+            --card-front-color: #ffffff;
+            --text-color: #333;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #bde0fe;
+            --accent-color: #ffafcc;
+            --letter-color: #ff8fab;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Screens --- */
+        #title-screen {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        #title-screen h1 {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        #title-screen p {
+            font-size: 1.5rem;
+        }
+
+        /* --- Game UI --- */
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #stage-display, #timer {
+            font-size: 1.5rem;
+        }
+
+        /* --- Game Board --- */
+        #game-board {
+            display: grid;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 80px;
+            height: 110px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-back {
+            background-color: var(--card-back-color);
+            background-image: linear-gradient(45deg, #a2d2ff 25%, #bde0fe 25%, #bde0fe 50%, #a2d2ff 50%, #a2d2ff 75%, #bde0fe 75%, #bde0fe 100%);
+            background-size: 56.57px 56.57px;
+        }
+
+        .card-front {
+            background-color: var(--card-front-color);
+            transform: rotateY(180deg);
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--letter-color);
+        }
+
+        /* --- Modals --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .stage-select-options button, .modal button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .stage-select-options button:hover, .modal button:hover {
+            background-color: #ff8fab;
+        }
+
+        #select-stage-btn, #surrender-btn {
+            position: fixed;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            border: 2px solid var(--border-color);
+            font-family: 'Arial', sans-serif;
+        }
+
+        #select-stage-btn {
+            top: 20px;
+            right: 20px;
+        }
+
+        #surrender-btn {
+            top: 20px;
+            left: 20px;
+        }
+
+        #select-stage-btn:hover, #surrender-btn:hover {
+            background-color: #ff8fab;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px var(--shadow-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="title-screen">
+        <h1>Match2play</h1>
+        <p>Press to Start</p>
+    </div>
+
+    <div id="game-container" class="hidden">
+        <div id="top-bar">
+            <div id="stage-display">Stage 1</div>
+            <div id="timer">Time: 0s</div>
+        </div>
+        <div id="game-board"></div>
+    </div>
+
+    <button id="select-stage-btn">Select Stage</button>
+    <button id="surrender-btn">Surrender</button>
+
+    <div id="stage-select-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Select a Stage</h2>
+            <div class="stage-select-options">
+                </div>
+        </div>
+    </div>
+
+    <div id="stage-clear-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="clear-title">Stage Cleared!</h2>
+            <p id="clear-time">Time: 0 seconds</p>
+            <button id="next-stage-btn">Next Stage</button>
+        </div>
+    </div>
+
+     <div id="surrender-confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Surrender?</h2>
+            <button id="surrender-yes-btn">Yes</button>
+            <button id="surrender-no-btn">No</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const titleScreen = document.getElementById('title-screen');
+            const gameContainer = document.getElementById('game-container');
+            const gameBoard = document.getElementById('game-board');
+            const stageDisplay = document.getElementById('stage-display');
+            const timerDisplay = document.getElementById('timer');
+            const selectStageBtn = document.getElementById('select-stage-btn');
+            const surrenderBtn = document.getElementById('surrender-btn');
+
+            const stageSelectModal = document.getElementById('stage-select-modal');
+            const stageSelectOptions = document.querySelector('.stage-select-options');
+
+            const stageClearModal = document.getElementById('stage-clear-modal');
+            const clearTitle = document.getElementById('clear-title');
+            const clearTime = document.getElementById('clear-time');
+            const nextStageBtn = document.getElementById('next-stage-btn');
+
+            const surrenderConfirmModal = document.getElementById('surrender-confirm-modal');
+            const surrenderYesBtn = document.getElementById('surrender-yes-btn');
+            const surrenderNoBtn = document.getElementById('surrender-no-btn');
+
+            // --- Game State & Config ---
+            const STAGES = [
+                { stage: 1, rows: 2, cols: 2 },
+                { stage: 2, rows: 2, cols: 4 },
+                { stage: 3, rows: 4, cols: 4 },
+                { stage: 4, rows: 4, cols: 6 },
+                { stage: 5, rows: 6, cols: 6 },
+            ];
+
+            // --- UPDATED to use ALPHABETS ---
+            const CARD_CONTENT = [
+                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'
+            ];
+
+            let currentState = {
+                stage: 1,
+                flippedCards: [],
+                matchedPairs: 0,
+                totalPairs: 0,
+                timerInterval: null,
+                seconds: 0,
+                isBoardLocked: false,
+                isPaused: false,
+            };
+
+            // --- Sound Placeholders ---
+            const sounds = {
+                tap: () => console.log('Sound: Tap'),
+                flip: () => console.log('Sound: Card Flip'),
+                matchSuccess: () => console.log('Sound: Match Success'),
+                matchFail: () => console.log('Sound: Match Fail'),
+                stageClear: () => console.log('Sound: Stage Clear'),
+            };
+
+            // --- Game Logic ---
+            function startGame(stageNum) {
+                currentState.stage = stageNum;
+                currentState.flippedCards = [];
+                currentState.matchedPairs = 0;
+                currentState.isBoardLocked = false;
+                currentState.isPaused = false;
+
+                const stageConfig = STAGES.find(s => s.stage === stageNum);
+                currentState.totalPairs = (stageConfig.rows * stageConfig.cols) / 2;
+
+                setupGameBoard(stageConfig);
+                startTimer();
+
+                titleScreen.classList.add('hidden');
+                gameContainer.classList.remove('hidden');
+                stageSelectModal.classList.add('hidden');
+                stageDisplay.textContent = `Stage ${stageNum}`;
+            }
+
+            function setupGameBoard({ rows, cols }) {
+                gameBoard.innerHTML = '';
+                gameBoard.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
+
+                const content = CARD_CONTENT.slice(0, currentState.totalPairs);
+                const cardsData = [...content, ...content];
+                shuffleArray(cardsData);
+
+                cardsData.forEach(letter => {
+                    const card = createCard(letter);
+                    gameBoard.appendChild(card);
+                });
+            }
+
+            function createCard(letter) {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.content = letter; // Use data-content for the letter
+
+                card.innerHTML = `
+                    <div class="card-face card-back"></div>
+                    <div class="card-face card-front">${letter}</div>
+                `;
+
+                card.addEventListener('click', () => onCardClick(card));
+                return card;
+            }
+
+            function onCardClick(card) {
+                if (currentState.isBoardLocked || card.classList.contains('flipped') || currentState.flippedCards.length >= 2) {
+                    return;
+                }
+
+                sounds.flip();
+                card.classList.add('flipped');
+                currentState.flippedCards.push(card);
+
+                if (currentState.flippedCards.length === 2) {
+                    checkForMatch();
+                }
+            }
+
+            function checkForMatch() {
+                currentState.isBoardLocked = true;
+                const [card1, card2] = currentState.flippedCards;
+
+                if (card1.dataset.content === card2.dataset.content) {
+                    // Match!
+                    sounds.matchSuccess();
+                    currentState.matchedPairs++;
+                    currentState.flippedCards = [];
+                    currentState.isBoardLocked = false;
+                    if (currentState.matchedPairs === currentState.totalPairs) {
+                        endStage();
+                    }
+                } else {
+                    // No match
+                    sounds.matchFail();
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        currentState.flippedCards = [];
+                        currentState.isBoardLocked = false;
+                    }, 1000);
+                }
+            }
+
+            function endStage() {
+                sounds.stageClear();
+                stopTimer();
+                setTimeout(showStageClearModal, 500);
+            }
+
+            // --- Timer ---
+            function startTimer() {
+                stopTimer();
+                currentState.seconds = 0;
+                timerDisplay.textContent = `Time: ${currentState.seconds}s`;
+                currentState.timerInterval = setInterval(() => {
+                    currentState.seconds++;
+                    timerDisplay.textContent = `Time: ${currentState.seconds}s`;
+                }, 1000);
+            }
+
+            function stopTimer() {
+                clearInterval(currentState.timerInterval);
+            }
+
+            // --- Modals ---
+            function showStageClearModal() {
+                clearTime.textContent = `Time: ${currentState.seconds} seconds`;
+
+                if (currentState.stage === STAGES.length) {
+                    clearTitle.innerHTML = "You completed all stages! &#x1F389;"; // Confetti Emoji
+                    nextStageBtn.textContent = 'Play Again';
+                } else {
+                    clearTitle.textContent = "Stage Cleared!";
+                    nextStageBtn.textContent = 'Next Stage';
+                }
+                stageClearModal.classList.remove('hidden');
+            }
+
+            function showStageSelectModal() {
+                stageSelectOptions.innerHTML = '';
+                STAGES.forEach(({ stage }) => {
+                    const button = document.createElement('button');
+                    button.textContent = `Stage ${stage}`;
+                    button.onclick = () => {
+                        sounds.tap();
+                        startGame(stage);
+                    };
+                    stageSelectOptions.appendChild(button);
+                });
+                stageSelectModal.classList.remove('hidden');
+            }
+
+            // --- Utility ---
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            // --- Event Listeners ---
+            titleScreen.addEventListener('click', () => {
+                sounds.tap();
+                startGame(1);
+            });
+
+            selectStageBtn.addEventListener('click', () => {
+                sounds.tap();
+                showStageSelectModal();
+            });
+
+            surrenderBtn.addEventListener('click', () => {
+                sounds.tap();
+                currentState.isPaused = true;
+                currentState.isBoardLocked = true;
+                clearInterval(currentState.timerInterval);
+                surrenderConfirmModal.classList.remove('hidden');
+            });
+
+            stageSelectModal.addEventListener('click', (e) => {
+                 if (e.target === stageSelectModal) { // Close if clicking on background
+                    stageSelectModal.classList.add('hidden');
+                }
+            });
+
+            surrenderYesBtn.addEventListener('click', () => {
+                sounds.tap();
+                surrenderConfirmModal.classList.add('hidden');
+                stopTimer();
+                gameContainer.classList.add('hidden');
+                titleScreen.classList.remove('hidden');
+                surrenderBtn.classList.add('hidden');
+                currentState.isPaused = false;
+                currentState.isBoardLocked = false;
+            });
+
+            surrenderNoBtn.addEventListener('click', () => {
+                sounds.tap();
+                surrenderConfirmModal.classList.add('hidden');
+                currentState.isPaused = false;
+                currentState.isBoardLocked = false;
+                // Resume timer
+                currentState.timerInterval = setInterval(() => {
+                    currentState.seconds++;
+                    timerDisplay.textContent = `Time: ${currentState.seconds}s`;
+                }, 1000);
+            });
+
+            nextStageBtn.addEventListener('click', () => {
+                sounds.tap();
+                stageClearModal.classList.add('hidden');
+                if (currentState.stage === STAGES.length) {
+                    // Back to title screen
+                    gameContainer.classList.add('hidden');
+                    titleScreen.classList.remove('hidden');
+                    surrenderBtn.classList.add('hidden');
+                    nextStageBtn.textContent = 'Next Stage'; // Reset button text
+                } else {
+                    startGame(currentState.stage + 1);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
