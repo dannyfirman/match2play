@@ -25,7 +25,7 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow: hidden; /* Prevent body scroll, modals handle their own overflow */
             perspective: 1000px;
         }
 
@@ -37,23 +37,24 @@
         #title-screen {
             text-align: center;
             cursor: pointer;
+            padding: 20px; /* Add some padding */
         }
 
         #title-screen h1 {
-            font-size: 4rem;
+            font-size: 10vw; /* Responsive font size */
             margin-bottom: 0.5rem;
             color: var(--accent-color);
         }
 
         #title-screen p {
-            font-size: 1.5rem;
+            font-size: 4vw; /* Responsive font size */
         }
 
         /* --- Game UI --- */
         #game-container {
-            width: 100%;
+            width: 95%; /* Use percentage for overall width */
             max-width: 800px;
-            padding: 20px;
+            padding: 10px; /* Smaller padding for mobile */
             box-sizing: border-box;
         }
 
@@ -61,23 +62,32 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Smaller margin */
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 5px;
         }
 
         #stage-display, #timer {
-            font-size: 1.5rem;
+            font-size: 4.5vw; /* Responsive font size */
+            white-space: nowrap; /* Prevent text wrapping */
         }
 
         /* --- Game Board --- */
         #game-board {
             display: grid;
-            gap: 10px;
+            gap: 1.5vw; /* Responsive gap */
             justify-content: center;
+            align-content: center; /* Center vertically if space allows */
+            height: calc(100vh - 120px); /* Adjust height based on top bar and margins */
+            overflow-y: auto; /* Allow vertical scrolling if cards exceed height */
+            padding-bottom: 10px; /* Prevent last row from being cut */
         }
 
         .card {
-            width: 80px;
-            height: 110px;
+            width: 20vw; /* Responsive width for cards */
+            height: 27.5vw; /* Maintain aspect ratio (e.g., 80px:110px -> 1:1.375) */
+            max-width: 80px; /* Max size for larger screens */
+            max-height: 110px; /* Max size for larger screens */
             cursor: pointer;
             position: relative;
             transform-style: preserve-3d;
@@ -105,16 +115,24 @@
         .card-back {
             background-color: var(--card-back-color);
             background-image: linear-gradient(45deg, #a2d2ff 25%, #bde0fe 25%, #bde0fe 50%, #a2d2ff 50%, #a2d2ff 75%, #bde0fe 75%, #bde0fe 100%);
-            background-size: 56.57px 56.57px;
+            background-size: 56.57px 56.57px; /* This can remain static or be adjusted if background pattern needs to scale */
         }
 
         .card-front {
             background-color: var(--card-front-color);
             transform: rotateY(180deg);
-            font-size: 3.5rem;
+            font-size: 10vw; /* Responsive font size for letters */
             font-weight: bold;
             color: var(--letter-color);
         }
+
+        /* Adjust font size for cards based on max-width to not be too large on desktop */
+        @media (min-width: 450px) {
+            .card-front {
+                font-size: 40px; /* Fixed size for larger screens */
+            }
+        }
+
 
         /* --- Modals --- */
         .modal {
@@ -132,27 +150,40 @@
 
         .modal-content {
             background: white;
-            padding: 30px;
+            padding: 20px; /* Smaller padding for mobile */
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%; /* Responsive width for modal content */
+            max-width: 400px; /* Max width for larger screens */
         }
 
         .modal-content h2 {
             margin-top: 0;
+            font-size: 6vw; /* Responsive font size */
         }
 
         .stage-select-options button, .modal button {
             background-color: var(--accent-color);
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
+            padding: 10px 15px; /* Smaller padding */
+            font-size: 4vw; /* Responsive font size */
             border-radius: 8px;
             cursor: pointer;
             margin: 5px;
             transition: background-color 0.3s;
         }
+         /* Fixed font size for buttons on larger screens */
+        @media (min-width: 450px) {
+            .stage-select-options button, .modal button {
+                font-size: 1rem;
+            }
+            .modal-content h2 {
+                font-size: 1.8rem;
+            }
+        }
+
 
         .stage-select-options button:hover, .modal button:hover {
             background-color: #ff8fab;
@@ -163,8 +194,8 @@
             background-color: var(--accent-color);
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 1rem;
+            padding: 10px 18px; /* Smaller padding */
+            font-size: 3.5vw; /* Responsive font size */
             font-weight: bold;
             border-radius: 15px;
             cursor: pointer;
@@ -172,16 +203,25 @@
             box-shadow: 0 4px 8px var(--shadow-color);
             border: 2px solid var(--border-color);
             font-family: 'Arial', sans-serif;
+            z-index: 50; /* Ensure buttons are above game board if needed */
+        }
+
+        /* Fixed font size for fixed buttons on larger screens */
+        @media (min-width: 450px) {
+            #select-stage-btn, #surrender-btn {
+                font-size: 1rem;
+                padding: 12px 24px;
+            }
         }
 
         #select-stage-btn {
-            top: 20px;
-            right: 20px;
+            top: 10px; /* Adjust position for mobile */
+            right: 10px;
         }
 
         #surrender-btn {
-            top: 20px;
-            left: 20px;
+            top: 10px; /* Adjust position for mobile */
+            left: 10px;
         }
 
         #select-stage-btn:hover, #surrender-btn:hover {
@@ -189,6 +229,131 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 12px var(--shadow-color);
         }
+
+        /* Media Queries for different screen sizes/orientations */
+
+        /* Tablets and larger phones in portrait */
+        @media (min-width: 600px) {
+            #title-screen h1 {
+                font-size: 6rem;
+            }
+
+            #title-screen p {
+                font-size: 2rem;
+            }
+
+            #stage-display, #timer {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                width: 90px;
+                height: 125px;
+            }
+
+            .card-front {
+                font-size: 4rem;
+            }
+        }
+
+        /* Desktop and large tablets */
+        @media (min-width: 800px) {
+            #game-container {
+                padding: 20px;
+            }
+            #top-bar {
+                margin-bottom: 20px;
+            }
+            #stage-display, #timer {
+                font-size: 1.5rem;
+            }
+            .card {
+                width: 80px;
+                height: 110px;
+            }
+            .card-front {
+                font-size: 3.5rem;
+            }
+        }
+
+        /* Landscape mode for mobile devices */
+        @media (max-height: 500px) and (max-width: 900px) {
+            body {
+                /* Adjust height or overflow if necessary for landscape */
+                align-items: flex-start; /* Align content to top to prevent cut-off */
+                padding-top: 10px;
+            }
+            #game-container {
+                height: auto; /* Allow height to be determined by content */
+                max-height: 95vh; /* Constrain overall game area height */
+                overflow-y: auto; /* Allow game container to scroll if content too tall */
+            }
+            #top-bar {
+                margin-bottom: 5px;
+            }
+            #stage-display, #timer {
+                font-size: 4vw; /* Slightly smaller font for landscape */
+            }
+            .card {
+                width: 14vw; /* Make cards smaller in landscape */
+                height: 19vw;
+                max-width: 70px;
+                max-height: 96px;
+            }
+            .card-front {
+                font-size: 6vw;
+            }
+            #select-stage-btn, #surrender-btn {
+                padding: 8px 15px;
+                font-size: 3vw;
+            }
+        }
+
+        /* Specific adjustments for 4x4 (Stage 3) on smaller screens */
+        /* This media query will target devices with a width that might struggle with 4 cards across */
+        @media (max-width: 400px) and (min-width: 320px) {
+            #game-board[style*="repeat(4"] .card { /* Target boards with 4 columns */
+                width: 22vw;
+                height: 30vw;
+            }
+            #game-board[style*="repeat(4"] .card-front {
+                font-size: 7vw;
+            }
+        }
+
+
+        /* Specific adjustments for 4x6 (Stage 4) and 6x6 (Stage 5) on smaller screens */
+        @media (max-width: 480px) {
+            #game-board[style*="repeat(6"] .card,
+            #game-board[style*="repeat(4"] .card { /* Target boards with 4 or 6 columns */
+                width: 15vw; /* Even smaller cards for these dense stages */
+                height: 20.6vw; /* Maintain aspect ratio */
+                max-width: 60px;
+                max-height: 82px;
+            }
+            #game-board[style*="repeat(6"] .card-front,
+            #game-board[style*="repeat(4"] .card-front {
+                font-size: 6vw; /* Smaller font for these stages */
+            }
+            #game-board {
+                gap: 1vw; /* Smaller gap */
+            }
+        }
+         @media (max-width: 320px) { /* For very small screens (e.g., iPhone SE portrait) */
+            #game-board[style*="repeat(6"] .card,
+            #game-board[style*="repeat(4"] .card {
+                width: 14vw;
+                height: 19vw;
+                max-width: 55px;
+                max-height: 75px;
+            }
+            #game-board[style*="repeat(6"] .card-front,
+            #game-board[style*="repeat(4"] .card-front {
+                font-size: 5vw;
+            }
+        }
+
+
     </style>
 </head>
 <body>
@@ -281,13 +446,13 @@
                 isPaused: false,
             };
 
-            // --- Sound Placeholders ---
+            // --- Sound Placeholders (as per your request to omit sounds for now) ---
             const sounds = {
-                tap: () => console.log('Sound: Tap'),
-                flip: () => console.log('Sound: Card Flip'),
-                matchSuccess: () => console.log('Sound: Match Success'),
-                matchFail: () => console.log('Sound: Match Fail'),
-                stageClear: () => console.log('Sound: Stage Clear'),
+                tap: () => {},
+                flip: () => {},
+                matchSuccess: () => {},
+                matchFail: () => {},
+                stageClear: () => {},
             };
 
             // --- Game Logic ---
@@ -312,16 +477,19 @@
 
             function setupGameBoard({ rows, cols }) {
                 gameBoard.innerHTML = '';
-                gameBoard.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
-
-                const content = CARD_CONTENT.slice(0, currentState.totalPairs);
-                const cardsData = [...content, ...content];
-                shuffleArray(cardsData);
-
-                cardsData.forEach(letter => {
-                    const card = createCard(letter);
-                    gameBoard.appendChild(card);
-                });
+                // Calculate appropriate card width for the current number of columns
+                // Using a base of 80px for standard cards and adapting.
+                // You might need to fine-tune this with more complex logic or more media queries.
+                let cardBaseWidth = 80; // Desktop default
+                if (window.innerWidth < 800) { // For smaller screens
+                    if (cols === 2) cardBaseWidth = 100; // Larger cards for 2 columns
+                    else if (cols === 4) cardBaseWidth = 70; // Smaller for 4 columns
+                    else if (cols === 6) cardBaseWidth = 50; // Even smaller for 6 columns
+                }
+                 // Set grid template columns using a flexible unit (e.g., fr or auto with minmax)
+                // Using 'auto' with a calculated min-max to allow cards to shrink
+                // or setting a fixed number of columns for simplicity here, relying on CSS for sizing.
+                gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; /* Use 1fr to distribute space evenly */
             }
 
             function createCard(letter) {
@@ -465,7 +633,7 @@
                 stopTimer();
                 gameContainer.classList.add('hidden');
                 titleScreen.classList.remove('hidden');
-                surrenderBtn.classList.add('hidden');
+                surrenderBtn.classList.add('hidden'); // Hide surrender button on title screen
                 currentState.isPaused = false;
                 currentState.isBoardLocked = false;
             });
@@ -489,7 +657,7 @@
                     // Back to title screen
                     gameContainer.classList.add('hidden');
                     titleScreen.classList.remove('hidden');
-                    surrenderBtn.classList.add('hidden');
+                    surrenderBtn.classList.add('hidden'); // Hide surrender button on title screen
                     nextStageBtn.textContent = 'Next Stage'; // Reset button text
                 } else {
                     startGame(currentState.stage + 1);
